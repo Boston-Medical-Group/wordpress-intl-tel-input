@@ -3,6 +3,11 @@ if (!defined('ABSPATH')) {
     exit; // Exit if accessed directly.
 }
 
+require_once(__DIR__ . '/../vendor/autoload.php');
+
+use \libphonenumber\PhoneNumberUtil;
+use \libphonenumber\NumberParseException;
+
 /**
  * Elementor Form Field - Credit Card Number
  *
@@ -17,7 +22,10 @@ class Elementor_Int_Tel_Input_Field extends \ElementorPro\Modules\Forms\Fields\F
 
     public $depended_scripts = ['int-tel-input-script-handle'];
 
-    public $depended_styles = ['int-tel-input-style-handle'];
+    public $depended_styles = [
+        'int-tel-input-style-handle',
+        'bmg-int-tel-input-style-handle',
+    ];
 
     /**
      * Field constructor.
@@ -72,7 +80,7 @@ class Elementor_Int_Tel_Input_Field extends \ElementorPro\Modules\Forms\Fields\F
      * @access public
      * @param mixed $item
      * @param mixed $item_index
-     * @param mixed $form
+     * @param ElementorPro\Modules\Forms\Widgets\Form $form
      * @return void
      */
     public function render($item, $item_index, $form)
@@ -94,7 +102,6 @@ class Elementor_Int_Tel_Input_Field extends \ElementorPro\Modules\Forms\Fields\F
         echo '<input ' . $form->get_render_attribute_string('input' . $item_index) . '>';
 
         $options = [
-            "hiddenInput" => "form-fields[{$item['custom_id']}_e164]",
             "utilsScript" => $utils,
             "allowDropdown" => $item['allow-dropdown'],
             "autoInsertDialCode" => $item['auto-insert-dial-code'],
@@ -109,24 +116,23 @@ class Elementor_Int_Tel_Input_Field extends \ElementorPro\Modules\Forms\Fields\F
         empty($item['preferred-countries']) ?: $options['preferredCountries'] = explode(',', $item['preferred-countries']);
         empty($item['only-countries']) ?: $options['onlyCountries'] = explode(',', $item['only-countries']);
 
-        wp_add_inline_script('int-tel-input-script-handle', "
-            const input = document.querySelector(\"#form-field-{$item['custom_id']}\");
-            const iti{$form_id}_{$item_index} = window.intlTelInput(input, " . json_encode($options) . ");
-        ");
+        $json = json_encode($options);
+        $js = <<<JS
 
-        /*
-form.onsubmit = () => {
-  if (!iti.isValidNumber()) {
-    message.innerHTML = "Invalid number. Please try again.";
-    return false;
-  }
-};
-
-const urlParams = new URLSearchParams(window.location.search);
-const fullPhone = urlParams.get('full_phone')
-if (fullPhone) {
-  message.innerHTML = `Submitted hidden input value: ${fullPhone}`;
-}*/
+jQuery(function ($) {
+    const input_{$form_id}_{$item_index} = $("#form-field-{$item['custom_id']}");
+    const iti{$form_id}_{$item_index} = window.intlTelInput(input_{$form_id}_{$item_index}[0], {$json});
+    
+    let closest_{$form_id} = input_{$form_id}_{$item_index}.closest('form');
+    
+    if (closest_{$form_id}) {
+        closest_{$form_id}.on('submit', function (d, a) {
+            input_{$form_id}_{$item_index}.val(iti{$form_id}_{$item_index}.getNumber());
+        })
+    }
+});
+JS;
+        wp_add_inline_script('int-tel-input-script-handle', $js);
     }
 
     /**
@@ -148,14 +154,14 @@ if (fullPhone) {
             return;
         }
 
-        require_once(__DIR__ . '/../libphonenumber-for-php-lite-main/src/PhoneNumberUtil.php');
-        require_once(__DIR__ . '/../libphonenumber-for-php-lite-main/src/NumberParseException.php');
         $phoneNumber = $field['value'];
-        $phoneUtil = \libphonenumber\PhoneNumberUtil::getInstance();
-        var_dump($field);
+        $phoneUtil = PhoneNumberUtil::getInstance();
         try {
             $phoneNumberProto = $phoneUtil->parse($phoneNumber, 'EC');
-        } catch (\libphonenumber\NumberParseException $e) {
+        } catch (NumberParseException $e) {
+            $ajax_handler->add_error_message(
+                esc_html__('Phone number invalid.', 'elementor-form-int-tel-input-field')
+            );
             $ajax_handler->add_error(
                 $field['id'],
                 esc_html__('Phone number invalid.', 'elementor-form-int-tel-input-field')
@@ -165,6 +171,9 @@ if (fullPhone) {
         }
 
         if (!$phoneUtil->isValidNumber($phoneNumberProto)) {
+            $ajax_handler->add_error_message(
+                esc_html__('Phone number invalid.', 'elementor-form-int-tel-input-field')
+            );
             $ajax_handler->add_error(
                 $field['id'],
                 esc_html__('Phone number invalid.', 'elementor-form-int-tel-input-field')
