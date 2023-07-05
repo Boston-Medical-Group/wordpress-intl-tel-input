@@ -5,8 +5,8 @@ if (!defined('ABSPATH')) {
 
 require_once(__DIR__ . '/../vendor/autoload.php');
 
-use \libphonenumber\PhoneNumberUtil;
-use \libphonenumber\NumberParseException;
+use libphonenumber\PhoneNumberUtil;
+use libphonenumber\NumberParseException;
 
 /**
  * Elementor Form Field - Credit Card Number

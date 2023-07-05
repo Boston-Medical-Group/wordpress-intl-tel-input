@@ -19,16 +19,24 @@ class ComposerStaticInit5888d2394df0e3be78c9b97969e34da7
         array (
             'Symfony\\Polyfill\\Mbstring\\' => 26,
         ),
+        'G' => 
+        array (
+            'Giggsey\\Locale\\' => 15,
+        ),
     );
 
     public static $prefixDirsPsr4 = array (
         'libphonenumber\\' => 
         array (
-            0 => __DIR__ . '/..' . '/giggsey/libphonenumber-for-php-lite/src',
+            0 => __DIR__ . '/..' . '/giggsey/libphonenumber-for-php/src',
         ),
         'Symfony\\Polyfill\\Mbstring\\' => 
         array (
             0 => __DIR__ . '/..' . '/symfony/polyfill-mbstring',
+        ),
+        'Giggsey\\Locale\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/giggsey/locale/src',
         ),
     );
 
