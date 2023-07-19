@@ -117,20 +117,23 @@ class Elementor_Int_Tel_Input_Field extends \ElementorPro\Modules\Forms\Fields\F
         empty($item['only-countries']) ?: $options['onlyCountries'] = explode(',', $item['only-countries']);
 
         $json = json_encode($options);
-        $js = <<<JS
+        $idAttr = $form->get_render_attributes('form', 'id');
 
-jQuery(function ($) {
-    const input_{$form_id}_{$item_index} = $("#form-field-{$item['custom_id']}");
-    const iti{$form_id}_{$item_index} = window.intlTelInput(input_{$form_id}_{$item_index}[0], {$json});
-    
-    let closest_{$form_id} = input_{$form_id}_{$item_index}.closest('form');
-    
-    if (closest_{$form_id}) {
-        closest_{$form_id}.on('submit', function (d, a) {
-            input_{$form_id}_{$item_index}.val(iti{$form_id}_{$item_index}.getNumber());
+        $js = <<<JS
+    let input_{$form_id}_{$item_index} = jQuery("#form-field-{$item['custom_id']}");
+    if (input_{$form_id}_{$item_index}.parents('div[data-elementor-type=popup]').length > 0) {
+        jQuery(document).on('elementor/popup/show', function () {
+            let input_{$form_id}_{$item_index} = jQuery("#form-field-{$item['custom_id']}");
+            iti{$form_id}_{$item_index} = window.intlTelInput(input_{$form_id}_{$item_index}[0], {$json});
         })
+    } else {
+        iti{$form_id}_{$item_index} = window.intlTelInput(input_{$form_id}_{$item_index}[0], {$json});
     }
-});
+
+    jQuery(document).on('change', '#form-field-{$item['custom_id']}', function () {
+        jQuery("#form-field-{$item['custom_id']}").val(iti{$form_id}_{$item_index}.getNumber(0));
+    })
+
 JS;
         wp_add_inline_script('int-tel-input-script-handle', $js);
     }

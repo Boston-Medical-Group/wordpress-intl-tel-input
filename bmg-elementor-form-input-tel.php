@@ -4,7 +4,7 @@
  * Plugin Name: Elementor Forms Int Tel Input Field
  * Description: Custom addon that adds a fancy "intl-tel-input" field to Elementor Forms Widget.
  * Plugin URI:  https://www.bostonmedicalgroup.es/
- * Version:     1.0.0
+ * Version:     1.0.1
  * Author:      Jean Rumeau
  * Text Domain: elementor-form-int-tel-input-field
  *
